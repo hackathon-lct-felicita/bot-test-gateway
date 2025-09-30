@@ -1,0 +1,31 @@
+services:
+  bot-test-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - ${PORT}:${PORT}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:${PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:v1.8.2
+    container_name: node_exporter
+    command:
+      - '--path.rootfs=/host'
+      - '--web.listen-address=:9109'
+    network_mode: host
+    pid: host
+    volumes:
+      - '/:/host:ro,rslave'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9109/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
